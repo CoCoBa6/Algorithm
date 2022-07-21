@@ -7,7 +7,7 @@
 using namespace std;
 
 map<string, string> mCode;
-void InitCode() 
+void InitCode()
 {
     mCode.insert({ "cpp", "1" });
     mCode.insert({ "java", "2" });
@@ -43,7 +43,7 @@ vector<int> solution(vector<string> info, vector<string> query) {
     for (auto _info : info) // 들어온 정보를 모두 돌아봄
     {
         vStr = split(_info);
-        
+
         string tempStr = "";
         for (int i = 0; i < vStr.size() - 1; i++) //들어온 input을 숫자 코드로 변환
             tempStr += mCode[vStr[i]];
@@ -60,9 +60,10 @@ vector<int> solution(vector<string> info, vector<string> query) {
         tempStr += mCode[vStr[2]];
         tempStr += mCode[vStr[4]];
         tempStr += mCode[vStr[6]];
-
+        int goalScore = stoi(vStr[7]);
         vResult.clear();
-        
+
+        int countNum = 0;
         for (auto m : mCount)   //들어왔던 info를 숫자코드화 시킨 map 탐색
         {
             string keyStr = m.first;
@@ -74,12 +75,14 @@ vector<int> solution(vector<string> info, vector<string> query) {
                 continue;
             else if (keyStr[3] != tempStr[3] && tempStr[3] != '0') //만약 각자리 숫자가 0이 아니거나 탐색하는 숫자코드와 다르다면
                 continue;
-            vResult.insert(vResult.end(),m.second.begin(),m.second.end()); //해당하는 점수 리스트를 결과 벡터 리스트에 넣어줌
+
+            for (auto result : m.second)
+            {
+                if (result >= goalScore) countNum++; //정해둔 목표 점수보다 점수가 높으면 카운팅 해줌
+            }
         }
 
-        sort(vResult.begin(), vResult.end()); //결과 벡터 정렬
-        auto itr = lower_bound(vResult.begin(), vResult.end(), stoi(vStr[7])); //해당하는 점수보다 낮은 iter를 받아옴
-        answer.push_back(vResult.size() - (itr - vResult.begin())); //결과 벡터 리스트의 사이즈에서 lower_bound에 해당하는 iter를 빼주고 answer에 넣어줌
+        answer.push_back(countNum); //카운팅 결과를 answer에 넣어준다.
     }
     return answer;
 }
