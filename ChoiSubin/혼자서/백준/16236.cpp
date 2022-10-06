@@ -2,105 +2,123 @@
 #include <iostream>
 #include <queue>
 using namespace std;
+struct Shark {
+    int move = 0;
+    pair<int, int> pos;
+};
 int arr[21][21];
 int sharkSize = 2;
-int dx[4] = {0,-1,0,1};
-int dy[4] = {-1,0,1,0};
+int eatCount = 0;
+int dx[4] = { 0,-1,0,1 };
+int dy[4] = { -1,0,1,0 };
 int N;
 bool visitArr[21][21];
 void ResetVisit()
 {
-    for(int i = 0 ; i < N ; i++)
+    for (int i = 0; i < N; i++)
     {
-        for(int j = 0 ; j < N ; j++)
+        for (int j = 0; j < N; j++)
         {
             visitArr[i][j] = false;
-        }  
+        }
     }
 }
 
-bool checkRange(pair<int,int> pos)
+bool checkRange(pair<int, int> pos)
 {
-    return pos.first>=0 && pos.second>=0 && pos.first<N&&pos.second<N;
+    return pos.first >= 0 && pos.second >= 0 && pos.first < N&& pos.second < N;
 }
 
-int GetRange(pair<int,int> startPos,pair<int,int> goalPos)
+int GetRange(pair<int, int> startPos, pair<int, int> goalPos)
 {
-    return abs(startPos.first-goalPos.first) +  abs(startPos.second-goalPos.second);
+    return abs(startPos.first - goalPos.first) + abs(startPos.second - goalPos.second);
 }
 
-int bfs(pair<int,int> startPos)
+Shark bfs(pair<int, int> startPos)
 {
-    queue<pair<int,int>> q;
-    pair<int,int> result = {-1,-1};
-    int minResult = -1;
+    queue<Shark> q;
+    Shark result = { 0,{-1,-1}};
     ResetVisit();
-    q.push(startPos);
+    q.push({ 0,startPos });
     visitArr[startPos.second][startPos.first] = true;
-    while(!q.empty())
+    while (!q.empty())
     {
-        pair<int,int> curPos = q.front();
+        Shark curInfo = q.front();
         q.pop();
-        if(arr[curPos.second][curPos.first]<=sharkSize &&arr[curPos.second][curPos.first]!=0)
+        if (arr[curInfo.pos.second][curInfo.pos.first] < sharkSize && arr[curInfo.pos.second][curInfo.pos.first] != 0)
         {
-            int range = GetRange(startPos,curPos);
-            if(minResult==-1 || minResult >= range)
+            if (result.move == 0 || result.move >= curInfo.move)
             {
-                if(minResult>range || minResult == -1)
+                if (result.move > curInfo.move || result.move == 0)
                 {
-                    result = curPos;
+                    result = curInfo;
                 }
                 else
                 {
-                    if(result.second == curPos.second)
+                    if (result.pos.second == curInfo.pos.second && result.pos.first > curInfo.pos.first)
                     {
-                        if(result.first>curPos.first)
-                        {
-                            result = curPos;     
-                        }
+                        result = curInfo;
                     }
-                    else if(result.second > curPos.second)
+                    else if (result.pos.second > curInfo.pos.second)
                     {
-                        result = curPos;
+                        result = curInfo;
                     }
                 }
             }
         }
         else
         {
-            for(int i = 0 ; i < 4;i++)
+            for (int i = 0; i < 4; i++)
             {
-                pair<int,int> tempPos = {curPos.first+dx[i],curPos.second+dy[i]};
-                if(checkRange(tempPos) && !visitArr[tempPos.second][tempPos.first])
+                pair<int, int> tempPos = { curInfo.pos.first + dx[i],curInfo.pos.second + dy[i] };
+                if (checkRange(tempPos) && !visitArr[tempPos.second][tempPos.first] && arr[tempPos.second][tempPos.first]<=sharkSize)
                 {
-                    q.push(tempPos);
+                    q.push({ curInfo.move+1,tempPos });
                     visitArr[tempPos.second][tempPos.first] = true;
                 }
             }
         }
 
     }
-    
-    cout << result.first << "," <<result.second<<endl;
-    return 0;
+
+    return result;
 }
 
 int main()
 {
     cin >> N;
-    pair<int,int> startPos;
-    for(int i = 0 ; i < N ; i++)
+    pair<int, int> startPos;
+    for (int i = 0; i < N; i++)
     {
-        for(int j = 0 ; j < N ; j++)
+        for (int j = 0; j < N; j++)
         {
             cin >> arr[i][j];
-            if(arr[i][j] == 9)
+            if (arr[i][j] == 9)
             {
-                startPos = {j,i};
+                startPos = { j,i };
+                arr[i][j] = 0;
             }
-        }  
+        }
     }
-    bfs(startPos);
-    
+
+    Shark findResult;
+    int countSec = 0;
+    while (1)
+    {
+        findResult = bfs(startPos);
+        if (findResult.pos == make_pair(-1,-1))
+            break;
+
+        if (sharkSize == (++eatCount))
+        {
+            sharkSize++;
+            eatCount = 0;
+        }
+        countSec += findResult.move;
+        startPos = findResult.pos;
+        arr[startPos.second][startPos.first] = 0;
+        ResetVisit();
+    }
+    cout << countSec;
     return 0;
 }
